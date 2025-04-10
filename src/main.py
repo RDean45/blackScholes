@@ -1,80 +1,44 @@
 import requests as rq
-import pandas as ps
-import numpy
 import math
 from scipy import stats
 from scipy.stats import norm
+import bsPremiumCallCalc as callPremiumCalc
+import bsStdDevCallCalc as stdDevCalc
+import theta as theta
+import gamma as gam
+import vega
+import delta
+import rho
 
-def main():
-    s = 347
-    k = 320
-    t = .25
-    rfr = .02956
-    var = .09
-    #callPremium = blackScholesCall(s,k,t,var,rfr)
+def main(option):
+    type = 'c'
+    s = 43.72
+    k = 50
+    T = .4
+    rfr = .04
+    stdDev = .43
+    var = False
+    if var:
+        stddev = math.sqrt(var)
+        print(f'Hidden StdDev: {stddev}')
+    elif stdDev:
+        var = stdDev ** 2
+        print(f'Hidden Variance: {var}')
     premium = 37.89026557896523
-    varGuess = computeStdDevCall(s,k,t,rfr,premium,var)
-    print(varGuess)
+    #varGuess = stdDevCalc.computeStdDevCall(s,k,T,rfr,premium,var)
+    #print(f'Var: {varGuess}')
+    #gamma = gam.gamma(s,k,T,stdDev,rfr)
+    #print(f'Gamma: {gamma}')
+    #callPremium = callPremiumCalc.blackScholesCall(s,k,T,var,rfr)
+    #print(callPremium)
 
-def d1(s,k,T,stdDev, rfr):
-    d1Numerator = (math.log(s/k) + (rfr + ((stdDev ** 2) * 0.5 )) * T)
-    d1Denominator = (stdDev*math.sqrt(T))
-    d1 = d1Numerator / d1Denominator
-    return d1
 
-def d2(d1, stdDev, T):
-    d2 = d1 - stdDev * math.sqrt(T)
-    return d2
-
-def blackScholesCall(s,k,T,var,rfr):
-    stdDev = math.sqrt(var)
-    print(f"Standard Deviation: {stdDev}")
-
-    d1Value = d1(s,k,T,stdDev,rfr)
-    print(f'D1 Value: {d1Value}')
-
-    d2Value = d2(d1Value,stdDev,T)
-    print(f'D2 Value: {d2Value}')
-
-    callPremium = (norm.cdf(d1Value)*s)-norm.cdf(d2Value)*k*math.exp(-rfr*T)
-    print(f'Call Premium: {callPremium}')
-
-    return callPremium
-
-def computeStdDevCall(s,k,T,rfr,correctPremium,varGuess,error = .05,maxAttempts = 500):
-    attemptCounter = 0
-    low = 0
-    high = max(low,varGuess,10000)
-    while True:
-        varGuess = (low + high) / 2
-        print(f"Variance Guess: {varGuess}")
-        stdDev = math.sqrt(varGuess)
-        print(f"Standard Deviation Guess: {stdDev}")
-
-        d1Value = d1(s,k,T,stdDev,rfr)
-        print(f'D1 Value: {d1Value}')
-
-        d2Value = d2(d1Value,stdDev,T)
-        print(f'D2 Value: {d2Value}')
-
-        callPremium = (norm.cdf(d1Value) * s) - norm.cdf(d2Value) * k * math.exp(-rfr * T)
-        print(f'Call Premium Guess: {callPremium}')
-        print(f'Call Premium Actual: {correctPremium}')
-        diff = callPremium - correctPremium
-        print(f'Premium Difference: {diff}')
-        if diff < error and diff > 0.0:
-            break
-        elif diff > error:
-            high = varGuess
-            print("Std Dev To BIG!")
-        else:
-            low = varGuess
-            print("Std Dev To SMALL!")
-        attemptCounter += 1
-        if attemptCounter == maxAttempts:
-            print(f"Max Attempts of: {maxAttempts} reached!")
-            break
-    print(f'VarGuess: {varGuess}')
-    return varGuess
+#optionDetails = {'type':None,'s': 0,'k':0,'t':0,'rfr': 0,'var': 0,'premium':0}
 
 main()
+
+#things we need to implement
+#1. the rest of the greeks
+#2. inputs (last)
+#3. pull info from the web to auto update, like rfr, current premium, etc
+#4.
